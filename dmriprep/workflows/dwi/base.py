@@ -209,6 +209,7 @@ def init_dwi_preproc_wf(dwi_file, has_fieldmap=False):
     # fmt: off
     workflow.connect([
         (inputnode, reportlets_wf, [("dwi_file", "inputnode.source_file")]),
+        (gradient_table, reportlets_wf, [("shells_dist", "inputnode.shells_dist")]),
         (dwi_reference_wf, reportlets_wf, [
             ("outputnode.validation_report", "inputnode.validation_report"),
         ]),

@@ -3,6 +3,7 @@ from nipype.pipeline import engine as pe
 from nipype.interfaces import utility as niu
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from ...interfaces import DerivativesDataSink
+from ...interfaces.reports import DiffusionSummary
 
 
 def init_reportlets_wf(output_dir, sdc_report=False, name="reportlets_wf"):
@@ -13,10 +14,32 @@ def init_reportlets_wf(output_dir, sdc_report=False, name="reportlets_wf"):
 
     inputnode = pe.Node(
         niu.IdentityInterface(
-            fields=["source_file", "dwi_ref", "dwi_mask", "validation_report", "sdc_report"]
+            fields=[
+                "source_file",
+                "shells_dist",
+                "dwi_ref",
+                "dwi_mask",
+                "validation_report",
+                "sdc_report",
+            ]
         ),
         name="inputnode",
     )
+
+    dwi_summary = pe.Node(
+        DiffusionSummary(),
+        name="dwi_summary",
+        run_without_submitting=True,
+    )
+
+    ds_report_summary = pe.Node(
+        DerivativesDataSink(
+            base_directory=output_dir, desc="summary", datatype="figures"
+        ),
+        name="ds_report_summary",
+        run_without_submitting=True,
+    )
+
     mask_reportlet = pe.Node(SimpleShowMaskRPT(), name="mask_reportlet")
 
     ds_report_mask = pe.Node(
@@ -36,6 +59,8 @@ def init_reportlets_wf(output_dir, sdc_report=False, name="reportlets_wf"):
 
     # fmt:off
     workflow.connect([
+        (inputnode, dwi_summary, [("shells_dist", "shells_dist")]),
+        (dwi_summary, ds_report_summary, [("out_report", "in_file")]),
         (inputnode, mask_reportlet, [("dwi_ref", "background_file"),
                                      ("dwi_mask", "mask_file")]),
         (inputnode, ds_report_validation, [("source_file", "source_file")]),

@@ -30,6 +30,15 @@ SUBJECT_TEMPLATE = """\
 \t</ul>
 """
 
+DIFFUSION_TEMPLATE = """\
+\t\t<details open>
+\t\t<summary>Summary</summary>
+\t\t<ul class="elem-desc">
+\t\t\t<li>Distinct shells: {shells_dist}</li>
+\t\t</ul>
+\t\t</details>
+"""
+
 ABOUT_TEMPLATE = """\t<ul>
 \t\t<li>dMRIPrep version: {version}</li>
 \t\t<li>dMRIPrep command: <code>{command}</code></li>
@@ -117,6 +126,19 @@ class SubjectSummary(SummaryInterface):
             nstd_spaces=", ".join(self.inputs.nstd_spaces),
             freesurfer_status=freesurfer_status,
         )
+
+
+class DiffusionSummaryInputSpec(BaseInterfaceInputSpec):
+    shells_dist = traits.Dict(mandatory=True, desc="Number of distinct shells")
+
+
+class DiffusionSummary(SummaryInterface):
+    input_spec = DiffusionSummaryInputSpec
+
+    def _generate_segment(self):
+        shells_dist = self.inputs.shells_dist
+
+        return DIFFUSION_TEMPLATE.format(shells_dist=shells_dist)
 
 
 class AboutSummaryInputSpec(BaseInterfaceInputSpec):
